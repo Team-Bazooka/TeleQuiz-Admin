@@ -1,5 +1,13 @@
 import { theme as defaultTheme, ChakraTheme } from "@chakra-ui/react";
 
+export const colorSchemes = {
+	brandBlue: "#157EBF",
+	brandGreen: "#02732A",
+	brandLime: "#69A62D",
+	brandYellow: "#D9CB04",
+	brandOrange: "#F28705",
+};
+
 const config: ChakraTheme = {
 	...defaultTheme,
 	fonts: {
@@ -16,9 +24,8 @@ const config: ChakraTheme = {
 	},
 	colors: {
 		...defaultTheme.colors,
+		...colorSchemes,
 	},
 };
-
-export const colorSchemes = {};
 
 export const theme = config;
