@@ -1,148 +1,28 @@
+import { AdminLayout } from "$lib/components/Layout/AdminLayout";
+import { QuizItem } from "$lib/components/QuizItem";
 import {
-	Avatar,
-	BackgroundProps,
-	Box,
-	Button,
-	ColorProps,
 	Flex,
-	Grid,
 	Heading,
-	Icon,
-	IconButton,
-	Input,
 	SimpleGrid,
+	Slide,
+	SlideFade,
 	Stat,
 	StatLabel,
 	StatNumber,
 	Text,
 } from "@chakra-ui/react";
 import { FC, ReactNode } from "react";
-import {
-	BiBookAlt,
-	BiBookReader,
-	BiGroup,
-	BiHomeAlt,
-	BiHomeAlt2,
-	BiIdCard,
-	BiLogOut,
-	BiLogOutCircle,
-	BiMenuAltLeft,
-	BiQuestionMark,
-	BiSearch,
-	BiSearchAlt,
-	BiSpreadsheet,
-	BiUser,
-} from "react-icons/bi";
+import { BiBookReader, BiGroup, BiIdCard } from "react-icons/bi";
 
 export default function Home() {
 	return (
-		<Flex minHeight="100vh" width="100%" direction={"column"}>
-			{/* Navbar */}
-			<Flex
-				alignItems={"center"}
-				px={["5", null, "20"]}
-				py={["5", null, "8"]}
-				gap="5"
-			>
-				<IconButton
-					aria-label="Menu"
-					icon={<BiMenuAltLeft />}
-					display={["flex", null, "none"]}
-				></IconButton>
-				<Flex direction={"column"}>
-					<Heading color="brandBlue" size="xl">
-						TeleQuiz
-					</Heading>
-					<Text
-						color="brandOrange"
-						fontSize={"xl"}
-						fontWeight="bold"
-						textTransform={"uppercase"}
-					>
-						Admin Panel
-					</Text>
-				</Flex>
-				<Box flex="1"></Box>
-				<Flex
-					background={"blackAlpha.100"}
-					py={["2", null, "4"]}
-					px="5"
-					borderRadius={"100px"}
-					alignItems={"center"}
-					gap="3"
-				>
-					<Avatar size={"sm"}></Avatar>
-					<Flex display={["none", null, "flex"]} direction={"column"}>
-						<Heading size="sm">Naol Chala</Heading>
-						<Text fontSize={"sm"}>naolchala6@gmail.com</Text>
-					</Flex>
-					<IconButton
-						aria-label="logout"
-						icon={<BiLogOutCircle />}
-					></IconButton>
-				</Flex>
-			</Flex>
-
-			{/* Container */}
-			<Flex flex="1" gap="10" px={["5", null, "20"]}>
-				{/* Sidebar */}
-				<Flex
-					width={["0%", null, "20%"]}
-					overflowX="hidden"
-					direction={"column"}
-					as="aside"
-					gap={"2"}
-					pb="10"
-				>
-					<Button
-						size={"lg"}
-						leftIcon={<BiHomeAlt size="24px" />}
-						variant="ghost"
-						justifyContent={"flex-start"}
-					>
-						Home
-					</Button>
-
-					<Button
-						size={"lg"}
-						leftIcon={<BiGroup size="24px" />}
-						variant="ghost"
-						justifyContent={"flex-start"}
-					>
-						Manage Users
-					</Button>
-					<Button
-						size={"lg"}
-						leftIcon={<BiBookAlt size="24px" />}
-						variant="ghost"
-						justifyContent={"flex-start"}
-					>
-						Manage Quizzes
-					</Button>
-					<Button
-						size={"lg"}
-						leftIcon={<BiIdCard size="24px" />}
-						variant="ghost"
-						justifyContent={"flex-start"}
-					>
-						Manage Admins
-					</Button>
-					<Box flex="1"></Box>
-					<Button
-						size={"lg"}
-						leftIcon={<BiUser size="24px" />}
-						variant="solid"
-						colorScheme={"orange"}
-						justifyContent={"flex-start"}
-					>
-						My Account
-					</Button>
-				</Flex>
-				<Flex direction={"column"} flex="1">
+		<AdminLayout>
+			<Flex direction={"column"} flex="1">
+				<SlideFade in={true}>
 					<Heading size={"lg"} mb="4">
 						Stats
 					</Heading>
-					<SimpleGrid columns={3} gap="5">
+					<SimpleGrid columns={[1, 2, 3]} gap="5">
 						<StatCard
 							color="white"
 							background="brandBlue"
@@ -165,6 +45,8 @@ export default function Home() {
 							label={"Total Admins"}
 						/>
 					</SimpleGrid>
+				</SlideFade>
+				<SlideFade in={true} delay={0.1}>
 					<Flex mt="16" direction={"column"}>
 						<Flex
 							justifyContent={"space-between"}
@@ -187,49 +69,11 @@ export default function Home() {
 							/>
 						</SimpleGrid>
 					</Flex>
-				</Flex>
+				</SlideFade>
 			</Flex>
-		</Flex>
+		</AdminLayout>
 	);
 }
-
-interface IQuizItem {
-	tag: string;
-	questions: number;
-	views: number | string;
-	createdAt: string;
-}
-
-const QuizItem: FC<IQuizItem> = ({ tag, questions, views, createdAt }) => {
-	return (
-		<Flex
-			cursor={"pointer"}
-			p="5"
-			direction={"column"}
-			background="blackAlpha.100"
-			borderRadius="md"
-			transition={"all 200ms ease-out"}
-			_hover={{
-				background: "blue.50",
-			}}
-		>
-			<Heading size={"md"} mb="4" flex="1">
-				{tag}
-			</Heading>
-			<Flex wrap={"wrap"} mb="5">
-				<Stat>
-					<StatLabel>Questions</StatLabel>
-					<StatNumber>{questions}</StatNumber>
-				</Stat>
-				<Stat>
-					<StatLabel>Views</StatLabel>
-					<StatNumber>{views}</StatNumber>
-				</Stat>
-			</Flex>
-			<Text fontSize={"sm"}>Created {createdAt}</Text>
-		</Flex>
-	);
-};
 
 interface IStatCard {
 	background?: string;
@@ -248,7 +92,7 @@ const StatCard: FC<IStatCard> = ({
 }: IStatCard) => {
 	return (
 		<Flex
-			direction={["column", null, "row"]}
+			direction={"row"}
 			color={color}
 			background={background}
 			p="5"
