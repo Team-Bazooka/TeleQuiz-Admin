@@ -18,7 +18,7 @@ const config: ChakraTheme = {
 	styles: {
 		global: {
 			"html, body": {
-				color: "gray.800",
+				color: "gray.700",
 			},
 		},
 	},
