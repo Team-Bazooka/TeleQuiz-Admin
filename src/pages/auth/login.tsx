@@ -13,12 +13,88 @@ import {
 	InputRightElement,
 	Text,
 	Link,
+	useToast,
 } from "@chakra-ui/react";
 import { BiHide, BiShow } from "react-icons/bi";
 import { useState } from "react";
+import { Formik, useFormik } from "formik";
+import * as yup from "yup";
+import axios from "axios";
+import { IUser, useUser } from "$lib/stores/user";
+import { useRouter } from "next/router";
+import { withSessionSsr } from "$lib/helpers/cookies/cookie";
+
+export const getServerSideProps = withSessionSsr(async ({ req }) => {
+	const user = req.session.user;
+	if (user) {
+		return {
+			redirect: {
+				destination: "/",
+			},
+			props: {
+				user,
+			},
+		};
+	}
+	return {
+		props: {},
+	};
+});
 
 const LoginPage = () => {
 	const [showPassword, setShowPassword] = useState(false);
+	const { user, setUser } = useUser();
+
+	const loginSchema = yup.object().shape({
+		username: yup.string().required("Please, Enter your Username"),
+		password: yup
+			.string()
+			.required("Please, Enter your Password")
+			.min(6, "Password must be minimum of 6 characters"),
+	});
+	const toast = useToast();
+	const router = useRouter();
+
+	const formik = useFormik({
+		initialValues: {
+			username: "",
+			password: "",
+		},
+		onSubmit: async (values, actions) => {
+			actions.setSubmitting(true);
+			await axios
+				.post(`/api/login`, values)
+				.then((res) => res.data)
+				.then((res) => {
+					if (!res.success) {
+						toast({
+							title: res.error.msg,
+							status: "error",
+							position: "bottom-right",
+						});
+						return;
+					}
+
+					const user: IUser = res.data;
+					setUser(user);
+					router.push("/");
+				})
+				.catch((err) => {
+					console.log(err);
+
+					toast({
+						title: "Oops, Unknown Error Happened",
+						description: "Please, try again",
+						status: "error",
+						position: "bottom-right",
+					});
+				})
+				.finally(() => actions.setSubmitting(false));
+		},
+		validationSchema: loginSchema,
+		validateOnBlur: false,
+		validateOnChange: false,
+	});
 
 	return (
 		<Flex minHeight={"100vh"} width="100%">
@@ -54,22 +130,31 @@ const LoginPage = () => {
 					direction="column"
 					gap="8"
 					width={["full", "80%", "60%"]}
+					onSubmit={(e) => formik.handleSubmit(e as any)}
 				>
-					<FormControl>
+					<FormControl isInvalid={!!formik.errors.username}>
 						<FormLabel>Username</FormLabel>
-						<Input name="username" type="text" variant={"filled"} />
+						<Input
+							name="username"
+							type="text"
+							value={formik.values.username}
+							onChange={formik.handleChange}
+							variant={"filled"}
+						/>
 						<FormErrorMessage>
-							Please Enter A Valid Username
+							{formik.errors.username}
 						</FormErrorMessage>
 					</FormControl>
 					<Flex direction={"column"}>
-						<FormControl>
+						<FormControl isInvalid={!!formik.errors.password}>
 							<FormLabel>Password</FormLabel>
 							<InputGroup>
 								<Input
 									name="password"
 									type={showPassword ? "text" : "password"}
 									variant="filled"
+									value={formik.values.password}
+									onChange={formik.handleChange}
 								/>
 								<InputRightElement>
 									<IconButton
@@ -95,7 +180,7 @@ const LoginPage = () => {
 								</InputRightElement>
 							</InputGroup>
 							<FormErrorMessage>
-								Incorrect Password
+								{formik.errors.password}
 							</FormErrorMessage>
 						</FormControl>
 						<Link
@@ -108,7 +193,13 @@ const LoginPage = () => {
 						</Link>
 					</Flex>
 
-					<Button mt="8" colorScheme={"blue"}>
+					<Button
+						mt="8"
+						colorScheme={"blue"}
+						isLoading={formik.isSubmitting}
+						onClick={formik.submitForm}
+						type="submit"
+					>
 						Login
 					</Button>
 				</Flex>

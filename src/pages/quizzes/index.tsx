@@ -1,5 +1,8 @@
 import { AdminLayout } from "$lib/components/Layout/AdminLayout";
 import { QuizItem, QuizItemLoading } from "$lib/components/QuizItem";
+import { LoadQuizzes } from "$lib/helpers/api/quiz";
+import { withSessionSsr } from "$lib/helpers/cookies/cookie";
+import { IUser } from "$lib/stores/user";
 import {
 	Box,
 	Flex,
@@ -13,11 +16,34 @@ import {
 	Text,
 } from "@chakra-ui/react";
 import Link from "next/link";
+import { FC } from "react";
 import { BiPlus, BiSearchAlt, BiSearchAlt2 } from "react-icons/bi";
+import { useQuery } from "react-query";
 
-const QuizzesPage = () => {
+export const getServerSideProps = withSessionSsr(async ({ req }) => {
+	const user = req.session.user;
+	if (!user) {
+		return {
+			redirect: {
+				destination: "/auth/login/",
+			},
+			props: {},
+		};
+	}
+	return {
+		props: {
+			user,
+		},
+	};
+});
+
+const QuizzesPage: FC<{ user: IUser }> = ({ user }) => {
+	const { isLoading, data, error } = useQuery("LoadQuizes", () =>
+		LoadQuizzes(user.accesstoken)
+	);
+
 	return (
-		<AdminLayout>
+		<AdminLayout user={user}>
 			<Flex direction="column" flex="1">
 				<Flex alignItems={"center"}>
 					<Flex direction="column">
@@ -66,18 +92,20 @@ const QuizzesPage = () => {
 								<Text>Create new Quiz</Text>
 							</Flex>
 						</Link>
-						<QuizItem
-							createdAt="2 minutes ago"
-							tag="Marvel Cinematic Universe Trivia"
-							questions={10}
-							views="200K"
-						/>
-						<QuizItem
-							createdAt="2 minutes ago"
-							tag="Astronomy Trivia"
-							questions={20}
-							views="40K"
-						/>
+						{isLoading
+							? [...Array(9)].map((v, k) => (
+									<QuizItemLoading key={k} />
+							  ))
+							: data &&
+							  data.map((quiz) => (
+									<QuizItem
+										key={quiz.id}
+										createdAt="2 minutes ago"
+										tag={quiz.title}
+										questions={quiz.number_of_questions}
+										views={quiz.views}
+									/>
+							  ))}
 						{/* <QuizItemLoading /> */}
 					</SimpleGrid>
 				</SimpleGrid>

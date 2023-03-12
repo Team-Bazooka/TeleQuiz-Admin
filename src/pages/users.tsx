@@ -1,4 +1,8 @@
 import { AdminLayout } from "$lib/components/Layout/AdminLayout";
+import { baseUrl } from "$lib/helpers/api/config";
+import { getUsers } from "$lib/helpers/api/users";
+import { withSessionSsr } from "$lib/helpers/cookies/cookie";
+import { IUser } from "$lib/stores/user";
 import {
 	Badge,
 	Button,
@@ -15,12 +19,33 @@ import {
 	Thead,
 	Tr,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import axios from "axios";
+import { FC, useState } from "react";
+import { useQuery } from "react-query";
 
-const UsersPage = () => {
-	const [isLoading, setLoading] = useState(true);
+export const getServerSideProps = withSessionSsr(async ({ req }) => {
+	const user = req.session.user;
+	if (!user) {
+		return {
+			redirect: {
+				destination: "/auth/login/",
+			},
+			props: {},
+		};
+	}
+	return {
+		props: {
+			user,
+		},
+	};
+});
+
+const UsersPage: FC<{ user: IUser }> = ({ user }) => {
+	const { isLoading, data, error } = useQuery("users", async () =>
+		getUsers(user.accesstoken)
+	);
 	return (
-		<AdminLayout>
+		<AdminLayout user={user}>
 			<Flex direction="column" flex="1" overflow={"auto"} height="100%">
 				<SlideFade in={true}>
 					<Flex direction={"column"}>
@@ -51,37 +76,42 @@ const UsersPage = () => {
 							</Tbody>
 						) : (
 							<Tbody>
-								{[...Array(50)].map((i, k) => {
-									return (
-										<Tr key={k}>
-											<Td>123456</Td>
-											<Td>
-												<Link
-													color={"blue.500"}
-													href="http://t.me/naol_chala"
-												>
-													@naol_chala
-												</Link>
-											</Td>
-											<Td>10</Td>
-											<Td>54</Td>
-											<Td>
-												{k % 2 == 0 ? (
-													<Badge
-														variant={"solid"}
-														colorScheme="green"
+								{data &&
+									data.map((u, k) => {
+										return (
+											<Tr key={u.id}>
+												<Td>{u.telegram_id}</Td>
+												<Td>
+													<Link
+														color={"blue.500"}
+														href={`http://t.me/${u.username}`}
 													>
-														Online
-													</Badge>
-												) : (
-													<Badge variant={"solid"}>
-														Offline
-													</Badge>
-												)}
-											</Td>
-										</Tr>
-									);
-								})}
+														@{u.username}
+													</Link>
+												</Td>
+												<Td>{u.number_of_quiz}</Td>
+												<Td>
+													{u.number_of_shared_link}
+												</Td>
+												<Td>
+													{u.isActive ? (
+														<Badge
+															variant={"solid"}
+															colorScheme="green"
+														>
+															Active
+														</Badge>
+													) : (
+														<Badge
+															variant={"solid"}
+														>
+															InActive
+														</Badge>
+													)}
+												</Td>
+											</Tr>
+										);
+									})}
 							</Tbody>
 						)}
 					</Table>

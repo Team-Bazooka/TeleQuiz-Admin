@@ -1,50 +1,84 @@
 import { AdminLayout } from "$lib/components/Layout/AdminLayout";
 import { QuizItem } from "$lib/components/QuizItem";
+import { loadStats } from "$lib/helpers/api/users";
+import { withSessionSsr } from "$lib/helpers/cookies/cookie";
+import { IUser, useUser } from "$lib/stores/user";
 import {
 	Flex,
 	Heading,
 	SimpleGrid,
-	Slide,
 	SlideFade,
-	Stat,
-	StatLabel,
-	StatNumber,
+	Spinner,
 	Text,
 } from "@chakra-ui/react";
 import { FC, ReactNode } from "react";
 import { BiBookReader, BiGroup, BiIdCard } from "react-icons/bi";
+import { useQuery } from "react-query";
 
-export default function Home() {
+export const getServerSideProps = withSessionSsr(async ({ req }) => {
+	const user = req.session.user;
+	if (!user) {
+		return {
+			redirect: {
+				destination: "/auth/login/",
+			},
+			props: {},
+		};
+	}
+	return {
+		props: {
+			user,
+		},
+	};
+});
+
+const Home: FC<{ user: IUser }> = ({ user }) => {
+	const { isLoading, data, error } = useQuery("Stats", () =>
+		loadStats(user.accesstoken)
+	);
+
 	return (
-		<AdminLayout>
+		<AdminLayout user={user}>
 			<Flex direction={"column"} flex="1">
 				<SlideFade in={true}>
 					<Heading size={"lg"} mb="4">
 						Stats
 					</Heading>
-					<SimpleGrid columns={[1, 2, 3]} gap="5">
-						<StatCard
-							color="white"
-							background="brandBlue"
-							icon={<BiGroup size="60px" />}
-							count={"300"}
-							label={"Total Users"}
-						/>
-						<StatCard
-							color="white"
-							background="green.500"
-							icon={<BiBookReader size="60px" />}
-							count={"240"}
-							label={"Total Quizzes"}
-						/>
-						<StatCard
-							color="white"
-							background="orange.500"
-							icon={<BiIdCard size="60px" />}
-							count={"30"}
-							label={"Total Admins"}
-						/>
-					</SimpleGrid>
+					{isLoading ? (
+						<Flex
+							alignItems={"center"}
+							justifyContent="center"
+							p="5"
+						>
+							<Spinner />
+						</Flex>
+					) : (
+						data && (
+							<SimpleGrid columns={[1, 2, 3]} gap="5">
+								<StatCard
+									color="white"
+									background="brandBlue"
+									icon={<BiGroup size="60px" />}
+									count={data.total_user}
+									label={"Total Users"}
+								/>
+								<StatCard
+									color="white"
+									background="green.500"
+									icon={<BiBookReader size="60px" />}
+									count={data.total_quiz}
+									label={"Total Quizzes"}
+								/>
+								<StatCard
+									color="white"
+									background="orange.500"
+									icon={<BiIdCard size="60px" />}
+									count={data.total_admins}
+									label={"Total Admins"}
+								/>
+							</SimpleGrid>
+						)
+					)}
 				</SlideFade>
 				<SlideFade in={true} delay={0.1}>
 					<Flex mt="16" direction={"column"}>
@@ -73,12 +107,12 @@ export default function Home() {
 			</Flex>
 		</AdminLayout>
 	);
-}
+};
 
 interface IStatCard {
 	background?: string;
 	color?: string;
-	count: string;
+	count: string | number;
 	label: string;
 	icon: ReactNode;
 }
@@ -109,3 +143,5 @@ const StatCard: FC<IStatCard> = ({
 		</Flex>
 	);
 };
+
+export default Home;

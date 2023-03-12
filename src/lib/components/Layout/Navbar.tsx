@@ -1,4 +1,7 @@
+import { useUser } from "$lib/stores/user";
 import { Flex, Heading, Avatar, IconButton, Box, Text } from "@chakra-ui/react";
+import axios from "axios";
+import { useRouter } from "next/router";
 import { FC } from "react";
 import { BiLogOutCircle, BiMenuAltRight } from "react-icons/bi";
 
@@ -6,6 +9,14 @@ interface INavbar {
 	onOpen: () => void;
 }
 export const Navbar: FC<INavbar> = ({ onOpen }) => {
+	const { user } = useUser();
+	const router = useRouter();
+
+	const logout = async () => {
+		await axios.post("/api/logout");
+		router.push("/");
+	};
+
 	return (
 		<Flex
 			alignItems={"center"}
@@ -38,12 +49,15 @@ export const Navbar: FC<INavbar> = ({ onOpen }) => {
 			>
 				<Avatar size={"sm"}></Avatar>
 				<Flex display={["none", null, "flex"]} direction={"column"}>
-					<Heading size="sm">Naol Chala</Heading>
-					<Text fontSize={"sm"}>naolchala6@gmail.com</Text>
+					<Heading size="sm">
+						{user.fname} {user.lname}
+					</Heading>
+					<Text fontSize={"sm"}>{user.email}</Text>
 				</Flex>
 				<IconButton
 					aria-label="logout"
 					icon={<BiLogOutCircle />}
+					onClick={logout}
 				></IconButton>
 			</Flex>
 			<IconButton
