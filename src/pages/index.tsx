@@ -1,5 +1,6 @@
 import { AdminLayout } from "$lib/components/Layout/AdminLayout";
-import { QuizItem } from "$lib/components/QuizItem";
+import { QuizItem, QuizItemLoading } from "$lib/components/QuizItem";
+import { LoadQuizzes } from "$lib/helpers/api/quiz";
 import { loadStats } from "$lib/helpers/api/users";
 import { withSessionSsr } from "$lib/helpers/cookies/cookie";
 import { IUser, useUser } from "$lib/stores/user";
@@ -80,30 +81,7 @@ const Home: FC<{ user: IUser }> = ({ user }) => {
 						)
 					)}
 				</SlideFade>
-				<SlideFade in={true} delay={0.1}>
-					<Flex mt="16" direction={"column"}>
-						<Flex
-							justifyContent={"space-between"}
-							direction={["column", null, "row"]}
-						>
-							<Heading size={"lg"}>Recent Quizzes</Heading>
-						</Flex>
-						<SimpleGrid mt="10" columns={[1, 2, 3]} gap="8">
-							<QuizItem
-								createdAt="2 minutes ago"
-								tag="Marvel Cinematic Universe Trivia"
-								questions={10}
-								views="200K"
-							/>
-							<QuizItem
-								createdAt="2 minutes ago"
-								tag="Astronomy Trivia"
-								questions={20}
-								views="40K"
-							/>
-						</SimpleGrid>
-					</Flex>
-				</SlideFade>
+				<RecentQuizes />
 			</Flex>
 		</AdminLayout>
 	);
@@ -141,6 +119,42 @@ const StatCard: FC<IStatCard> = ({
 				<Text>{label}</Text>
 			</Flex>
 		</Flex>
+	);
+};
+
+const RecentQuizes = () => {
+	const { user } = useUser();
+	const { isLoading, data, error } = useQuery("RecentQueries", () =>
+		LoadQuizzes(user.accesstoken)
+	);
+
+	return (
+		<SlideFade in={true} delay={0.1}>
+			<Flex mt="16" direction={"column"}>
+				<Flex
+					justifyContent={"space-between"}
+					direction={["column", null, "row"]}
+				>
+					<Heading size={"lg"}>Recent Quizzes</Heading>
+				</Flex>
+				<SimpleGrid mt="10" columns={[1, 2, 3]} gap="8">
+					{isLoading
+						? [...Array(3)].map((v, k) => <QuizItemLoading />)
+						: data &&
+						  data
+								.slice(0, 3)
+								.map((res) => (
+									<QuizItem
+										key={res.id}
+										questions={res.number_of_questions}
+										tag={res.title}
+										createdAt={"2 mins"}
+										views={res.views}
+									/>
+								))}
+				</SimpleGrid>
+			</Flex>
+		</SlideFade>
 	);
 };
 
