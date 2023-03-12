@@ -203,7 +203,8 @@ const CreateQuizPage: FC<{ user: IUser }> = ({ user }) => {
 										width={"200px"}
 										size="sm"
 										onKeyUp={(event) => {
-											event.preventDefault();
+											console.log(event.key);
+
 											if (event.key === "Enter") {
 												setTags((values) => [
 													...values,
@@ -211,8 +212,6 @@ const CreateQuizPage: FC<{ user: IUser }> = ({ user }) => {
 												]);
 												setTagName("");
 											}
-
-											return event.key != "Enter";
 										}}
 										value={tagName}
 										onChange={(e) =>
@@ -263,7 +262,7 @@ const CreateQuizPage: FC<{ user: IUser }> = ({ user }) => {
 				</Flex>
 				<Flex py="10" gap={"4"} direction="column">
 					<Button
-						type="submit"
+						onClick={formik.submitForm}
 						isLoading={formik.isSubmitting}
 						colorScheme="blue"
 						size="lg"
